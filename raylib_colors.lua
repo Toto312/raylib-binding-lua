@@ -1,0 +1,28 @@
+local ffi = require("ffi")
+
+return {
+    LIGHTGRAY  = ffi.new("Color", {200, 200, 200, 255}),
+    GRAY       = ffi.new("Color", {130, 130, 130, 255}),
+    DARKGRAY   = ffi.new("Color", {80,  80,  80,  255}),
+    YELLOW     = ffi.new("Color", {253, 249, 0,   255}),
+    GOLD       = ffi.new("Color", {255, 203, 0,   255}),
+    ORANGE     = ffi.new("Color", {255, 161, 0,   255}),
+    PINK       = ffi.new("Color", {255, 109, 194, 255}),
+    RED        = ffi.new("Color", {230, 41,  55,  255}),
+    MAROON     = ffi.new("Color", {190, 33,  55,  255}),
+    GREEN      = ffi.new("Color", {0,   228, 48,  255}),
+    DARKGREEN  = ffi.new("Color", {0,   117, 44,  255}),
+    SKYBLUE    = ffi.new("Color", {102, 191, 255, 255}),
+    BLUE       = ffi.new("Color", {0,   121, 241, 255}),
+    DARKBLUE   = ffi.new("Color", {0,   82,  172, 255}),
+    PURPLE     = ffi.new("Color", {200, 122, 255, 255}),
+    DARKPURPLE = ffi.new("Color", {112, 31,  126, 255}),
+    BEIGE      = ffi.new("Color", {211, 176, 131, 255}),
+    BROWN      = ffi.new("Color", {127, 106, 79,  255}),
+    DARKBROWN  = ffi.new("Color", {76,  63,  47,  255}),
+    WHITE      = ffi.new("Color", {255, 255, 255, 255}),
+    BLACK      = ffi.new("Color", {0,   0,   0,   255}),
+    BLANK      = ffi.new("Color", {0,   0,   0,   0  }),
+    MAGENTA    = ffi.new("Color", {255, 0,   255, 255}),
+    RAYWHITE   = ffi.new("Color", {245, 245, 245, 255}),
+}
