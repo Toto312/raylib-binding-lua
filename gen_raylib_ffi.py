@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-gen_raylib_ffi.py
-Genera automáticamente un binding de raylib para LuaJIT usando FFI.
-Uso: python3 gen_raylib_ffi.py [ruta/al/raylib.h] [-o salida.lua]
+gen_raylib_ffi.py`
+Automatically generates a raylib binding for LuaJIT using FFI.
+Usage: `python3 gen_raylib_ffi.py [path/to/raylib.h] [-o output.lua]
 """
 
 import subprocess
@@ -12,7 +12,7 @@ import argparse
 from pathlib import Path
 
 
-# Patrones a eliminar para que FFI no se queje
+# Patterns to eliminate so FFI doesn't complain
 REMOVE_PATTERNS = [
     re.compile(r'__attribute__\s*\(\(.*?\)\)', re.DOTALL),
     re.compile(r'__extension__\s*'),
@@ -30,8 +30,8 @@ REMOVE_PATTERNS = [
 
 LUA_TEMPLATE = '''\
 -- raylib_ffi.lua
--- Generado automáticamente por gen_raylib_ffi.py
--- NO editar manualmente
+-- Generated automatically by gen_raylib_ffi.py
+-- DO NOT edit manually
 
 local ffi = require("ffi")
 
@@ -47,23 +47,23 @@ return rl
 
 def preprocess_header(header_path: str) -> str:
     """
-    Corre gcc -E (CON marcadores de archivo) para saber
-    qué líneas pertenecen al header pedido vs includes del sistema.
+    Run gcc -E (WITH file markers) to find out
+    which lines belong to the requested header vs system includes.
     """
     result = subprocess.run(
         ["gcc", "-E", "-x", "c", header_path],
         capture_output=True, text=True
     )
     if result.returncode != 0:
-        print("Error al preprocesar:", result.stderr, file=sys.stderr)
+        print("Error preprocessing:", result.stderr, file=sys.stderr)
         sys.exit(1)
     return result.stdout
 
 
 def extract_from_header(raw: str, header_path: str) -> str:
     """
-    Usa los marcadores # lineno "archivo" de gcc -E para quedarse
-    SOLO con las líneas que provienen del header indicado.
+    Use the `# lineno "archivo"` markers in `gcc -E` to keep only the lines that come 
+    from the specified header.
     """
     abs_header = str(Path(header_path).resolve())
     lines = raw.splitlines()
@@ -73,7 +73,7 @@ def extract_from_header(raw: str, header_path: str) -> str:
     current_file = None
     
     for line in lines:
-        # Detectar marcadores de archivo: # <num> "<archivo>" <flags>
+        # Detect file markers: # <num> "<file>" <flags>
         m = re.match(r'^#\s+\d+\s+"([^"]+)"', line)
         if m:
             current_file = str(Path(m.group(1)).resolve()) if m.group(1) not in ('<built-in>', '<command-line>') else m.group(1)
@@ -87,7 +87,7 @@ def extract_from_header(raw: str, header_path: str) -> str:
 
 
 def clean_code(raw: str) -> str:
-    """Limpia el código preprocesado para que FFI lo acepte."""
+    """Clean the preprocessed code so that FFI will accept it."""
     lines = raw.splitlines()
     cleaned = []
 
@@ -104,54 +104,50 @@ def clean_code(raw: str) -> str:
 
 
 def generate_ffi(header_path: str, output_path: str):
-    print(f"[1/4] Preprocesando {header_path}...")
+    print(f"[1/4] Processing {header_path}...")
     raw = preprocess_header(header_path)
 
-    print("[2/4] Extrayendo solo declaraciones del header...")
+    print("[2/4] Extracting only header declarations...")
     raylib_section = extract_from_header(raw, header_path)
     
     if not raylib_section.strip():
-        print("⚠  No se extrajo contenido — revisá la ruta del header", file=sys.stderr)
+        print("⚠  No content was extracted — check the header path", file=sys.stderr)
         sys.exit(1)
 
-    print("[3/4] Limpiando código para FFI...")
+    print("[3/4] Cleaning up code for FFI...")
     clean = clean_code(raylib_section)
 
-    print(f"[4/4] Escribiendo {output_path}...")
+    print(f"[4/4] Writing {output_path}...")
     lua_code = LUA_TEMPLATE.format(cdef=clean)
 
     Path(output_path).write_text(lua_code, encoding="utf-8")
     lines = len(clean.splitlines())
-    print(f"\n✓ Listo! Binding generado en: {output_path}")
-    print(f"  Líneas de cdef: {lines}")
+    print(f"\n✓ Done! Binding generated in: {output_path}")
+    print(f"  cdef lines: {lines}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Genera binding LuaJIT FFI para raylib")
+    parser = argparse.ArgumentParser(description="Generate LuaJIT FFI binding for raylib")
     parser.add_argument(
         "header",
         nargs="?",
         default="/usr/include/raylib.h",
-        help="Ruta al header raylib.h (default: /usr/include/raylib.h)"
+        help="Path to the raylib.h header (default: /usr/include/raylib.h)"
     )
     parser.add_argument(
         "-o", "--output",
         default="raylib_ffi.lua",
-        help="Archivo Lua de salida (default: raylib_ffi.lua)"
+        help="Lua output file (default: raylib_ffi.lua)"
     )
     args = parser.parse_args()
 
     if not Path(args.header).exists():
-        print(f"Error: No se encontró el header en {args.header}", file=sys.stderr)
-        print("Instalá raylib con: sudo apt install libraylib-dev", file=sys.stderr)
-        print("O pasá la ruta manualmente: python3 gen_raylib_ffi.py /ruta/a/raylib.h", file=sys.stderr)
+        print(f"Error: The header was not found in {args.header}", file=sys.stderr)
+        print("Install raylib with: sudo apt install libraylib-dev", file=sys.stderr)
+        print("Or enter the route manually: python3 gen_raylib_ffi.py /ruta/a/raylib.h", file=sys.stderr)
         sys.exit(1)
 
     generate_ffi(args.header, args.output)
-
-    print("\nUso en LuaJIT:")
-    print('  local rl = require("raylib_ffi")')
-    print('  rl.InitWindow(800, 450, "Mi ventana")')
 
 
 if __name__ == "__main__":
